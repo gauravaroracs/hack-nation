@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabMind — AI Scientist</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface2: #f0ede6;
+  --border: #e2ddd5;
+  --border2: #ccc8bf;
+  --text: #1a1814;
+  --muted: #8a8479;
+  --accent: #1a5c3a;
+  --accent-light: #e8f2ec;
+  --accent2: #c84b2f;
+  --accent2-light: #fdf0ec;
+  --accent3: #8b6914;
+  --accent3-light: #fdf6e3;
+  --blue: #1e3a6e;
+  --blue-light: #e8eef8;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ─── LAYOUT ─── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ─── HEADER ─── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.logo-text span { color: var(--accent); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.header-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid rgba(26,92,58,0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── MAIN ─── */
+main {
+  flex: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 40px 24px 80px;
+}
+
+/* ─── SCREENS ─── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ─── INPUT SCREEN ─── */
+.input-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.input-hero h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.input-hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.input-hero p {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: 32px;
+}
+
+.input-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color 0.2s;
+}
+
+textarea:focus { border-color: var(--accent); }
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.char-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: -0.01em;
+}
+
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.examples-section { margin-bottom: 40px; }
+
+.examples-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.examples-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.example-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  text-align: left;
+}
+
+.example-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: var(--shadow);
+}
+
+.example-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.example-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.example-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* ─── LOADING SCREEN ─── */
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 40px;
+}
+
+.loading-question {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 600px;
+  width: 100%;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  font-weight: 400;
+  font-style: italic;
+  text-align: center;
+}
+
+.loading-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  opacity: 0.4;
+  transition: opacity 0.4s, border-color 0.4s, background 0.4s;
+}
+
+.stage.active {
+  opacity: 1;
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.stage.done {
+  opacity: 1;
+  border-color: var(--border2);
+  background: var(--surface);
+}
+
+.stage-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.stage.active .stage-icon { background: rgba(26,92,58,0.15); }
+.stage.done .stage-icon { background: var(--surface2); }
+
+.stage-text {
+  flex: 1;
+}
+
+.stage-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.stage-detail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.stage-status {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ─── RESULTS SCREEN ─── */
+.results-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.results-title {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.results-question {
+  font-size: clamp(15px, 2vw, 18px);
+  font-weight: 700;
+  color: var(--text);
+  max-width: 640px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.results-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.btn-ghost:hover { border-color: var(--border2); background: var(--surface2); }
+
+/* COMPRESSOR STAT */
+.compressor-bar {
+  background: linear-gradient(135deg, var(--accent) 0%, #2d7a52 100%);
+  border-radius: 12px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.compressor-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.compressor-before {
+  text-align: center;
+}
+
+.compressor-val {
+  font-size: 28px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.5);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-decoration: line-through;
+}
+
+.compressor-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.compressor-arrow {
+  font-size: 20px;
+  color: rgba(255,255,255,0.4);
+}
+
+.compressor-after { text-align: center; }
+
+.compressor-val-new {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.compressor-label-new {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.compressor-right {
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* LIT QC CARD */
+.lit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.lit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--accent3-light);
+  border: 1px solid rgba(139,105,20,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.lit-body { flex: 1; }
+
+.lit-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.lit-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.novelty-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.novelty-similar {
+  background: var(--accent3-light);
+  color: var(--accent3);
+  border: 1px solid rgba(139,105,20,0.2);
+}
+
+.novelty-new {
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid rgba(26,92,58,0.2);
+}
+
+.novelty-exact {
+  background: var(--accent2-light);
+  color: var(--accent2);
+  border: 1px solid rgba(200,75,47,0.2);
+}
+
+.lit-refs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lit-ref {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.lit-ref-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.lit-ref-title {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.lit-ref-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* STATS ROW */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-align: center;
+}
+
+.stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-val.green { color: var(--accent); }
+.stat-val.amber { color: var(--accent3); }
+.stat-val.blue { color: var(--blue); }
+
+.stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.tab {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 7px;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* PROTOCOL STEPS */
+.protocol-steps { display: flex; flex-direction: column; gap: 10px; }
+
+.proto-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.proto-step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.proto-step-header:hover { background: var(--surface2); }
+
+.step-num-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-light);
+  border: 1px solid rgba(26,92,58,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.step-info { flex: 1; }
+
+.step-title-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.step-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.step-meta-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.step-toggle { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+.proto-step.open .step-toggle { transform: rotate(180deg); }
+
+.step-body {
+  display: none;
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.proto-step.open .step-body { display: block; }
+
+.step-body-text {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  padding-top: 14px;
+  font-weight: 400;
+}
+
+.step-note {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: var(--accent3-light);
+  border-left: 3px solid var(--accent3);
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  color: var(--accent3);
+  line-height: 1.5;
+}
+
+/* MATERIALS TABLE */
+.materials-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+
+.materials-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.materials-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  white-space: nowrap;
+}
+
+.materials-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.materials-table tr:last-child td { border-bottom: none; }
+.materials-table tr:hover td { background: var(--bg); }
+
+.catalog-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--blue);
+  background: var(--blue-light);
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid rgba(30,58,110,0.12);
+}
+
+.supplier-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface2);
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+}
+
+.cost-cell {
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.mat-name { font-weight: 600; }
+.mat-spec { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* BUDGET */
+.budget-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.budget-chart { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; }
+
+.budget-chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.budget-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.budget-bar-label {
+  font-size: 12px;
+  color: var(--muted);
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.budget-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.budget-bar-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 500;
+  width: 64px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.budget-total-card {
+  background: var(--text);
+  color: white;
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.budget-total-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.budget-total-val {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+
+.budget-total-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.5;
+}
+
+.budget-items {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.budget-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.budget-row:last-child { border-bottom: none; }
+.budget-row-name { color: var(--text); font-weight: 500; }
+.budget-row-qty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+.budget-row-cost { font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+/* TIMELINE */
+.timeline-gantt {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gantt-header {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.gantt-col-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  border-right: 1px solid var(--border);
+}
+
+.gantt-weeks {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  padding: 10px 0;
+}
+
+.gantt-week {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.gantt-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  border-bottom: 1px solid var(--border);
+  min-height: 44px;
+  align-items: center;
+}
+
+.gantt-row:last-child { border-bottom: none; }
+
+.gantt-phase {
+  padding: 8px 16px;
+  border-right: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.gantt-phase small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.gantt-track {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  padding: 8px 6px;
+  gap: 3px;
+}
+
+.gantt-cell {
+  height: 28px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.gantt-cell.filled {
+  background: var(--accent);
+  opacity: 0.7;
+}
+
+.gantt-cell.filled.light { opacity: 0.3; }
+.gantt-cell.filled.dark { opacity: 1; }
+
+/* VALIDATION */
+.validation-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.validation-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.validation-text {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+.confidence-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.conf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.conf-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.conf-score {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent3);
+  letter-spacing: -0.03em;
+}
+
+.conf-bar-track {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.conf-bar-fill {
+  height: 100%;
+  width: 79%;
+  background: linear-gradient(90deg, var(--accent3), #e6a020);
+  border-radius: 3px;
+}
+
+.flags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--accent3-light);
+  border-radius: 6px;
+  border: 1px solid rgba(139,105,20,0.12);
+  font-size: 12px;
+  color: var(--accent3);
+  line-height: 1.5;
+}
+
+/* FEEDBACK */
+.feedback-section {
+  margin-top: 32px;
+  border-top: 2px dashed var(--border);
+  padding-top: 28px;
+}
+
+.feedback-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.feedback-steps { display: flex; flex-direction: column; gap: 8px; }
+
+.fb-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fb-step-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fb-rating {
+  display: flex;
+  gap: 6px;
+}
+
+.fb-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.fb-btn:hover { background: var(--accent-light); border-color: var(--accent); }
+.fb-btn.selected-up { background: var(--accent-light); border-color: var(--accent); }
+.fb-btn.selected-down { background: var(--accent2-light); border-color: var(--accent2); }
+
+.fb-correct-input {
+  display: none;
+  margin-top: 8px;
+}
+
+.fb-correct-input.show { display: flex; gap: 8px; }
+
+.fb-correct-input input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  outline: none;
+  background: var(--bg);
+}
+
+.fb-correct-input input:focus { border-color: var(--accent); }
+
+.fb-save-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.fb-save-btn:hover { opacity: 0.85; }
+
+.feedback-submit {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.feedback-note {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--accent);
+  color: white;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* NEW QUERY SCREEN */
+.new-query-screen {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 60px 0;
+}
+
+.learned-banner {
+  background: linear-gradient(135deg, var(--accent-light), #d4eddf);
+  border: 1px solid rgba(26,92,58,0.2);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.learned-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.learned-text {
+  font-size: 13px;
+  color: var(--accent);
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+/* UTILITY */
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.alt-approach {
+  background: var(--blue-light);
+  border: 1px solid rgba(30,58,110,0.15);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.alt-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alt-text {
+  font-size: 12px;
+  color: var(--blue);
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  header { padding: 0 16px; }
+  main { padding: 24px 16px 60px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .budget-grid { grid-template-columns: 1fr; }
+  .compressor-left { gap: 12px; }
+  .gantt-phase { font-size: 11px; padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🧬</div>
+    <div class="logo-text">Lab<span>Mind</span></div>
+  </div>
+  <div class="header-right">
+    <div class="header-badge">DEMO MODE</div>
+    <div class="header-tag">Fulcrum Challenge</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 1: INPUT
+═══════════════════════════════════════ -->
+<div class="screen active" id="screen-input">
+
+  <div class="input-hero">
+    <h1>From hypothesis to<br><em>runnable experiment</em></h1>
+    <p>Type a scientific question. LabMind checks the literature and generates a complete, operationally realistic experiment plan your lab can execute.</p>
+  </div>
+
+  <div class="input-card">
+    <label class="input-label">Your scientific hypothesis</label>
+    <textarea id="hypothesis-input" placeholder="e.g. Supplementing C57BL/6 mice with Lactobacillus rhamnosus GG for 4 weeks will reduce intestinal permeability by at least 30% compared to controls, measured by FITC-dextran assay…"></textarea>
+    <div class="input-actions">
+      <span class="char-hint">Be specific: include intervention, outcome, threshold, and mechanism</span>
+      <button class="btn-primary" onclick="startLoading()">
+        Generate Plan <span>→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="examples-section">
+    <div class="examples-label">Try a sample hypothesis</div>
+    <div class="examples-grid">
+      <div class="example-chip" onclick="fillExample(0)">
+        <div class="example-tag">🐭 Gut Health</div>
+        <div class="example-title">Probiotic gut permeability in mice</div>
+        <div class="example-desc">Lactobacillus rhamnosus GG reduces intestinal permeability by 30%</div>
+      </div>
+      <div class="example-chip" onclick="fillExample(1)">
+        <div class="example-tag">🩸 Diagnostics</div>
+        <div class="example-title">Paper-based CRP biosensor</div>
+        <div class="example-desc">Anti-CRP antibody biosensor detecting inflammation without lab equipment</div>
+      </div>
+      <div class="example-chip" onclick="fillExample(2)">
+        <div class="example-tag">🧫 Cell Biology</div>
+        <div class="example-title">Trehalose cryoprotection of HeLa cells</div>
+        <div class="example-desc">Trehalose vs DMSO for post-thaw cell viability improvement</div>
+      </div>
+      <div class="example-chip" onclick="fillExample(3)">
+        <div class="example-tag">🌍 Climate</div>
+        <div class="example-title">CO₂ fixation via Sporomusa ovata</div>
+        <div class="example-desc">Bioelectrochemical CO₂ → acetate conversion benchmarking</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 2: LOADING
+═══════════════════════════════════════ -->
+<div class="screen" id="screen-loading">
+  <div class="loading-wrap">
+    <div style="text-align:center">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em">PROCESSING HYPOTHESIS</div>
+      <div class="loading-question" id="loading-question-text"></div>
+    </div>
+
+    <div class="loading-stages">
+      <div class="stage" id="stage-1">
+        <div class="stage-icon">🔍</div>
+        <div class="stage-text">
+          <div class="stage-name">Validating hypothesis</div>
+          <div class="stage-detail">Checking testability & structure</div>
+        </div>
+        <div class="stage-status" id="stage-1-status">○</div>
+      </div>
+      <div class="stage" id="stage-2">
+        <div class="stage-icon">📚</div>
+        <div class="stage-text">
+          <div class="stage-name">Literature QC</div>
+          <div class="stage-detail">Searching Semantic Scholar · arXiv</div>
+        </div>
+        <div class="stage-status" id="stage-2-status">○</div>
+      </div>
+      <div class="stage" id="stage-3">
+        <div class="stage-icon">🧬</div>
+        <div class="stage-text">
+          <div class="stage-name">Designing protocol</div>
+          <div class="stage-detail">Grounding in protocols.io methodology</div>
+        </div>
+        <div class="stage-status" id="stage-3-status">○</div>
+      </div>
+      <div class="stage" id="stage-4">
+        <div class="stage-icon">💰</div>
+        <div class="stage-text">
+          <div class="stage-name">Estimating costs & timeline</div>
+          <div class="stage-detail">Thermo Fisher · Sigma-Aldrich · Abcam</div>
+        </div>
+        <div class="stage-status" id="stage-4-status">○</div>
+      </div>
+    </div>
+
+    <div class="loading-timer" id="loading-timer">0.0s</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 3: RESULTS
+═══════════════════════════════════════ -->
+<div class="screen" id="screen-results">
+
+  <!-- Header -->
+  <div class="results-header">
+    <div>
+      <div class="results-title">▸ experiment plan generated</div>
+      <div class="results-question" id="results-question-text"></div>
+    </div>
+    <div class="results-actions">
+      <button class="btn-ghost" onclick="window.print()">⬇ Export PDF</button>
+      <button class="btn-ghost" onclick="goBack()">← New query</button>
+    </div>
+  </div>
+
+  <!-- Compressor stat -->
+  <div class="compressor-bar">
+    <div class="compressor-left">
+      <div class="compressor-before">
+        <div class="compressor-val">3–5 days</div>
+        <div class="compressor-label">Manual scoping</div>
+      </div>
+      <div class="compressor-arrow">→</div>
+      <div class="compressor-after">
+        <div class="compressor-val-new" id="gen-time-display">38s</div>
+        <div class="compressor-label-new">LabMind</div>
+      </div>
+    </div>
+    <div class="compressor-right">A senior scientist could do this in hours. A junior one, days. LabMind compresses it to seconds — for every researcher, every domain.</div>
+  </div>
+
+  <!-- Literature QC -->
+  <div class="lit-card">
+    <div class="lit-icon">📖</div>
+    <div class="lit-body">
+      <div class="lit-header">
+        <div class="lit-title">Literature Quality Check</div>
+        <span class="novelty-badge novelty-similar">Similar work exists</span>
+      </div>
+      <div class="lit-refs">
+        <div class="lit-ref">
+          <div class="lit-ref-num">[1]</div>
+          <div>
+            <div class="lit-ref-title">Lactobacillus rhamnosus GG modulates intestinal mucosal barrier through upregulation of claudin-3</div>
+            <div class="lit-ref-meta">Camilleri et al. · Gut (2021) · doi:10.1136/gutjnl-2020-321</div>
+          </div>
+        </div>
+        <div class="lit-ref">
+          <div class="lit-ref-num">[2]</div>
+          <div>
+            <div class="lit-ref-title">FITC-dextran permeability assay as a quantitative marker of gut barrier integrity in murine models</div>
+            <div class="lit-ref-meta">Wang & Bhatt · J. Exp. Medicine (2022) · doi:10.1084/jem.20211</div>
+          </div>
+        </div>
+        <div class="lit-ref">
+          <div class="lit-ref-num">[3]</div>
+          <div>
+            <div class="lit-ref-title">Tight junction protein expression following probiotic intervention: a systematic review</div>
+            <div class="lit-ref-meta">Plovier et al. · Nature Microbiology (2023) · doi:10.1038/s41564-022-1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val green">$23,400</div>
+      <div class="stat-lbl">Total budget</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val blue">8 wks</div>
+      <div class="stat-lbl">Timeline</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">6</div>
+      <div class="stat-lbl">Protocol steps</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val amber">0.79</div>
+      <div class="stat-lbl">Confidence</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('protocol', this)">🔬 Protocol</button>
+    <button class="tab" onclick="switchTab('materials', this)">🧪 Materials</button>
+    <button class="tab" onclick="switchTab('budget', this)">💰 Budget</button>
+    <button class="tab" onclick="switchTab('timeline', this)">📅 Timeline</button>
+    <button class="tab" onclick="switchTab('validation', this)">✅ Validation</button>
+  </div>
+
+  <!-- PROTOCOL TAB -->
+  <div class="tab-panel active" id="tab-protocol">
+    <div class="protocol-steps">
+
+      <div class="proto-step" onclick="toggleStep(this)">
+        <div class="proto-step-header">
+          <div class="step-num-badge">01</div>
+          <div class="step-info">
+            <div class="step-title-text">Animal Housing & Acclimatisation</div>
+            <div class="step-meta">
+              <span class="step-meta-item">⏱ 7 days</span>
+              <span class="step-meta-item">👥 1 FTE</span>
+              <span class="step-meta-item">📍 Animal facility</span>
+            </div>
+          </div>
+          <div class="step-toggle">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="step-body-text">
+            House 40 male C57BL/6 mice (8 weeks old, 20–22g) in groups of 5 per cage under standard conditions: 12h light/dark cycle, 22°C ± 2°C, ad libitum access to standard chow (Altromin 1324) and sterile water. Allow 7 days acclimatisation before any intervention begins. Weigh and randomise mice into two groups of 20: treatment group (LGG supplementation) and vehicle control group (PBS gavage).
+          </div>
+          <div class="step-note">⚠ Confirm IACUC approval before ordering animals. Typical approval timeline: 3–4 weeks.</div>
+        </div>
+      </div>
+
+      <div class="proto-step" onclick="toggleStep(this)">
+        <div class="proto-step-header">
+          <div class="step-num-badge">02</div>
+          <div class="step-info">
+            <div class="step-title-text">Probiotic Preparation & Daily Gavage</div>
+            <div class="step-meta">
+              <span class="step-meta-item">⏱ 28 days</span>
+              <span class="step-meta-item">👥 1 FTE</span>
+              <span class="step-meta-item">📍 BSL-1 lab</span>
+            </div>
+          </div>
+          <div class="step-toggle">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="step-body-text">
+            Prepare fresh LGG suspension daily from lyophilised stock (ATCC 53103). Resuspend in sterile PBS to 1×10⁹ CFU/100µL. Administer 100µL daily via oral gavage to treatment group. Control mice receive 100µL sterile PBS by gavage on the same schedule. Monitor body weight every 3 days. Record gavage compliance and any adverse events.
+          </div>
+          <div class="step-note">📌 Critical: prepare suspension fresh daily — LGG viability drops >50% after 4h at room temperature.</div>
+        </div>
+      </div>
+
+      <div class="proto-step" onclick="toggleStep(this)">
+        <div class="proto-step-header">
+          <div class="step-num-badge">03</div>
+          <div class="step-info">
+            <div class="step-title-text">FITC-Dextran Permeability Assay</div>
+            <div class="step-meta">
+              <span class="step-meta-item">⏱ 2 days</span>
+              <span class="step-meta-item">👥 2 FTE</span>
+              <span class="step-meta-item">📍 Fluorescence reader</span>
+            </div>
+          </div>
+          <div class="step-toggle">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="step-body-text">
+            On Day 28, fast mice for 4h. Administer FITC-Dextran 4kDa (Sigma-Aldrich FD4, Cat# 46944) by oral gavage at 600mg/kg body weight in PBS. Collect blood via submandibular vein at 1h, 2h, and 4h post-gavage. Centrifuge at 3,000×g for 10 min, collect serum. Measure fluorescence on a microplate reader (excitation 485nm, emission 528nm) against a FITC-Dextran standard curve (0–2,000 ng/mL). Express results as serum FITC-Dextran concentration (ng/mL).
+          </div>
+        </div>
+      </div>
+
+      <div class="proto-step" onclick="toggleStep(this)">
+        <div class="proto-step-header">
+          <div class="step-num-badge">04</div>
+          <div class="step-info">
+            <div class="step-title-text">Tissue Collection & Fixation</div>
+            <div class="step-meta">
+              <span class="step-meta-item">⏱ 1 day</span>
+              <span class="step-meta-item">👥 2 FTE</span>
+              <span class="step-meta-item">📍 Dissection suite</span>
+            </div>
+          </div>
+          <div class="step-toggle">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="step-body-text">
+            Euthanise mice by CO₂ asphyxiation following institutional protocol. Collect 1cm sections of proximal jejunum, mid-ileum, and proximal colon. Fix half of each section in 10% neutral buffered formalin (NBF) for 24h at RT (for IHC). Snap-freeze the other half in liquid nitrogen and store at −80°C (for Western blot). Collect cecal contents into 2mL cryotubes and snap-freeze for microbiome analysis (optional).
+          </div>
+        </div>
+      </div>
+
+      <div class="proto-step" onclick="toggleStep(this)">
+        <div class="proto-step-header">
+          <div class="step-num-badge">05</div>
+          <div class="step-info">
+            <div class="step-title-text">Western Blot — Claudin-1 & Occludin</div>
+            <div class="step-meta">
+              <span class="step-meta-item">⏱ 3 days</span>
+              <span class="step-meta-item">👥 1 FTE</span>
+              <span class="step-meta-item">📍 Protein lab</span>
+            </div>
+          </div>
+          <div class="step-toggle">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="step-body-text">
+            Homogenise frozen tissue in RIPA lysis buffer (Thermo Fisher, Cat# 89900) with protease inhibitor cocktail. Determine protein concentration by BCA assay (Thermo Fisher Pierce BCA, Cat# 23225). Load 30µg protein per lane on 10% SDS-PAGE gel. Transfer to PVDF membrane (Bio-Rad). Block 1h in 5% non-fat milk/TBST. Incubate overnight at 4°C with: anti-claudin-1 (Abcam ab96060, 1:1000), anti-occludin (Abcam ab216327, 1:500), anti-β-actin (loading control, Abcam ab8226, 1:2000). Secondary: HRP-conjugated anti-rabbit (1:5000). Develop with ECL reagent.
+          </div>
+          <div class="step-note">📌 Use 10% SDS-PAGE gel for claudin-1 (~23kDa) and occludin (~65kDa) — note: prior protocol versions used 12% incorrectly (scientist correction applied ✓)</div>
+        </div>
+      </div>
+
+      <div class="proto-step" onclick="toggleStep(this)">
+        <div class="proto-step-header">
+          <div class="step-num-badge">06</div>
+          <div class="step-info">
+            <div class="step-title-text">Statistical Analysis</div>
+            <div class="step-meta">
+              <span class="step-meta-item">⏱ 3 days</span>
+              <span class="step-meta-item">👥 1 FTE</span>
+              <span class="step-meta-item">📍 R / GraphPad Prism</span>
+            </div>
+          </div>
+          <div class="step-toggle">▼</div>
+        </div>
+        <div class="step-body">
+          <div class="step-body-text">
+            Analyse FITC-Dextran data using unpaired two-tailed Student's t-test (n=20 per group). Calculate % reduction from control mean. Western blot band intensities quantified with ImageJ, normalised to β-actin. Express data as mean ± SEM. Statistical significance at p&lt;0.05. Power analysis: n=20 gives 85% power to detect ≥30% reduction (α=0.05, assumed SD=20% based on published data).
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="alt-approach">
+      <div class="alt-title">🔀 Alternative approach</div>
+      <div class="alt-text">If oral gavage compliance is low or FITC assay shows high baseline variability, consider Ussing chamber electrophysiology (TEER measurement) as an orthogonal permeability measure. Requires ~$8,000 additional equipment but provides more mechanistic insight into paracellular transport.</div>
+    </div>
+  </div>
+
+  <!-- MATERIALS TAB -->
+  <div class="tab-panel" id="tab-materials">
+    <div class="materials-table-wrap">
+      <table class="materials-table">
+        <thead>
+          <tr>
+            <th>Reagent / Item</th>
+            <th>Catalog #</th>
+            <th>Supplier</th>
+            <th>Qty</th>
+            <th>Unit cost</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="mat-name">C57BL/6 mice, male, 8wk</div>
+              <div class="mat-spec">20–22g, SPF grade</div>
+            </td>
+            <td><span class="catalog-num">000664</span></td>
+            <td><span class="supplier-badge">Jackson Labs</span></td>
+            <td>40 animals</td>
+            <td>$65</td>
+            <td class="cost-cell">$2,600</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">L. rhamnosus GG (ATCC 53103)</div>
+              <div class="mat-spec">Lyophilised, 1×10¹⁰ CFU/vial</div>
+            </td>
+            <td><span class="catalog-num">53103</span></td>
+            <td><span class="supplier-badge">ATCC</span></td>
+            <td>3 vials</td>
+            <td>$480</td>
+            <td class="cost-cell">$1,440</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">FITC-Dextran 4kDa</div>
+              <div class="mat-spec">FD4, lyophilised powder</div>
+            </td>
+            <td><span class="catalog-num">FD4-1G</span></td>
+            <td><span class="supplier-badge">Sigma-Aldrich</span></td>
+            <td>1g</td>
+            <td>$285</td>
+            <td class="cost-cell">$285</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">Anti-Claudin-1 antibody</div>
+              <div class="mat-spec">Rabbit polyclonal, WB validated</div>
+            </td>
+            <td><span class="catalog-num">ab96060</span></td>
+            <td><span class="supplier-badge">Abcam</span></td>
+            <td>100µg</td>
+            <td>£285</td>
+            <td class="cost-cell">£285</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">Anti-Occludin antibody</div>
+              <div class="mat-spec">Rabbit polyclonal, IHC/WB</div>
+            </td>
+            <td><span class="catalog-num">ab216327</span></td>
+            <td><span class="supplier-badge">Abcam</span></td>
+            <td>100µg</td>
+            <td>£320</td>
+            <td class="cost-cell">£320</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">RIPA Lysis Buffer</div>
+              <div class="mat-spec">1×, ready to use, 100mL</div>
+            </td>
+            <td><span class="catalog-num">89900</span></td>
+            <td><span class="supplier-badge">Thermo Fisher</span></td>
+            <td>2 bottles</td>
+            <td>$82</td>
+            <td class="cost-cell">$164</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">Pierce BCA Protein Assay Kit</div>
+              <div class="mat-spec">500 assays, 96-well format</div>
+            </td>
+            <td><span class="catalog-num">23225</span></td>
+            <td><span class="supplier-badge">Thermo Fisher</span></td>
+            <td>1 kit</td>
+            <td>$265</td>
+            <td class="cost-cell">$265</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">PVDF Membrane (0.2µm)</div>
+              <div class="mat-spec">Roll, 26.5cm × 3.75m</div>
+            </td>
+            <td><span class="catalog-num">1620177</span></td>
+            <td><span class="supplier-badge">Bio-Rad</span></td>
+            <td>1 roll</td>
+            <td>$185</td>
+            <td class="cost-cell">$185</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="mat-name">Altromin 1324 Standard Chow</div>
+              <div class="mat-spec">Rodent maintenance diet, 10kg</div>
+            </td>
+            <td><span class="catalog-num">1324-10KG</span></td>
+            <td><span class="supplier-badge">Altromin</span></td>
+            <td>3 bags</td>
+            <td>€95</td>
+            <td class="cost-cell">€285</td>
+          </tr>
+          <tr style="background:var(--surface2)">
+            <td colspan="5" style="font-weight:700;font-size:13px;padding:14px 16px">Animals, housing & facility costs</td>
+            <td class="cost-cell">$12,500</td>
+          </tr>
+          <tr style="background:var(--surface2)">
+            <td colspan="5" style="font-weight:700;font-size:13px;padding:14px 16px">Staff time (1.5 FTE × 8 weeks)</td>
+            <td class="cost-cell">$5,200</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BUDGET TAB -->
+  <div class="tab-panel" id="tab-budget">
+    <div class="budget-grid">
+      <div class="budget-chart">
+        <div class="budget-chart-title">Breakdown by category</div>
+        <div class="budget-bar-row">
+          <div class="budget-bar-label">Staff / FTE</div>
+          <div class="budget-bar-track"><div class="budget-bar-fill" style="width:55%;background:var(--accent)"></div></div>
+          <div class="budget-bar-val">$12,870</div>
+        </div>
+        <div class="budget-bar-row">
+          <div class="budget-bar-label">Animals</div>
+          <div class="budget-bar-track"><div class="budget-bar-fill" style="width:38%;background:var(--blue)"></div></div>
+          <div class="budget-bar-val">$2,600</div>
+        </div>
+        <div class="budget-bar-row">
+          <div class="budget-bar-label">Housing</div>
+          <div class="budget-bar-track"><div class="budget-bar-fill" style="width:42%;background:#5b8de8"></div></div>
+          <div class="budget-bar-val">$3,200</div>
+        </div>
+        <div class="budget-bar-row">
+          <div class="budget-bar-label">Reagents</div>
+          <div class="budget-bar-track"><div class="budget-bar-fill" style="width:30%;background:var(--accent3)"></div></div>
+          <div class="budget-bar-val">$2,890</div>
+        </div>
+        <div class="budget-bar-row">
+          <div class="budget-bar-label">Consumables</div>
+          <div class="budget-bar-track"><div class="budget-bar-fill" style="width:15%;background:#b0a090"></div></div>
+          <div class="budget-bar-val">$1,840</div>
+        </div>
+      </div>
+      <div class="budget-total-card">
+        <div class="budget-total-label">Total estimated cost</div>
+        <div class="budget-total-val">$23,400</div>
+        <div class="budget-total-sub">8-week study · 2 cohorts · 40 animals<br>Excludes microbiome sequencing (optional +$3,200)</div>
+      </div>
+    </div>
+
+    <div class="budget-items">
+      <div class="budget-row">
+        <div class="budget-row-name">Staff — Research Scientist (0.5 FTE × 8wk)</div>
+        <div class="budget-row-qty">320h</div>
+        <div class="budget-row-cost">$8,960</div>
+      </div>
+      <div class="budget-row">
+        <div class="budget-row-name">Staff — Research Assistant (0.25 FTE × 8wk)</div>
+        <div class="budget-row-qty">80h</div>
+        <div class="budget-row-cost">$1,760</div>
+      </div>
+      <div class="budget-row">
+        <div class="budget-row-name">Staff — Statistician (0.1 FTE)</div>
+        <div class="budget-row-qty">16h</div>
+        <div class="budget-row-cost">$640</div>
+      </div>
+      <div class="budget-row">
+        <div class="budget-row-name">Animals — C57BL/6 mice (40 × $65)</div>
+        <div class="budget-row-qty">40</div>
+        <div class="budget-row-cost">$2,600</div>
+      </div>
+      <div class="budget-row">
+        <div class="budget-row-name">Animal housing & husbandry (8wk)</div>
+        <div class="budget-row-qty">—</div>
+        <div class="budget-row-cost">$3,200</div>
+      </div>
+      <div class="budget-row">
+        <div class="budget-row-name">Reagents (see materials table)</div>
+        <div class="budget-row-qty">—</div>
+        <div class="budget-row-cost">$2,890</div>
+      </div>
+      <div class="budget-row">
+        <div class="budget-row-name">Consumables (plastics, tubes, tips)</div>
+        <div class="budget-row-qty">—</div>
+        <div class="budget-row-cost">$1,840</div>
+      </div>
+      <div class="budget-row" style="background:var(--accent-light);font-weight:700">
+        <div class="budget-row-name" style="color:var(--accent)">TOTAL</div>
+        <div class="budget-row-qty"></div>
+        <div class="budget-row-cost" style="color:var(--accent);font-size:15px">$23,400</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE TAB -->
+  <div class="tab-panel" id="tab-timeline">
+    <div class="timeline-gantt">
+      <div class="gantt-header">
+        <div class="gantt-col-label">Phase</div>
+        <div class="gantt-weeks">
+          <div class="gantt-week">Wk 1</div>
+          <div class="gantt-week">Wk 2</div>
+          <div class="gantt-week">Wk 3</div>
+          <div class="gantt-week">Wk 4</div>
+          <div class="gantt-week">Wk 5</div>
+          <div class="gantt-week">Wk 6</div>
+          <div class="gantt-week">Wk 7</div>
+          <div class="gantt-week">Wk 8</div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-phase">Animal acclimatisation<small>IACUC + housing</small></div>
+        <div class="gantt-track">
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-phase">LGG gavage intervention<small>Daily dosing · n=40</small></div>
+        <div class="gantt-track">
+          <div class="gantt-cell filled light"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-phase">FITC-Dextran assay<small>Permeability measurement</small></div>
+        <div class="gantt-track">
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-phase">Tissue collection<small>Fixation · snap-freeze</small></div>
+        <div class="gantt-track">
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-phase">Western blot<small>Claudin-1 · Occludin</small></div>
+        <div class="gantt-track">
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell filled dark"></div>
+          <div class="gantt-cell"></div>
+        </div>
+      </div>
+      <div class="gantt-row">
+        <div class="gantt-phase">Data analysis<small>Statistics · reporting</small></div>
+        <div class="gantt-track">
+          <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+          <div class="gantt-cell filled light"></div>
+          <div class="gantt-cell filled dark"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALIDATION TAB -->
+  <div class="tab-panel" id="tab-validation">
+    <div class="validation-card">
+      <div class="validation-title">🎯 Primary endpoint</div>
+      <div class="validation-text">
+        Serum FITC-Dextran concentration (ng/mL) at 4h post-gavage on Day 28. Success criterion: ≥30% reduction in mean serum FITC-Dextran in the LGG group vs PBS control (p&lt;0.05, unpaired t-test, n=20/group). Power: 85% at α=0.05 assuming SD of 20% based on published murine gut permeability data.
+      </div>
+    </div>
+    <div class="validation-card">
+      <div class="validation-title">📊 Secondary endpoints</div>
+      <div class="validation-text">
+        (1) Western blot band intensity of claudin-1 and occludin normalised to β-actin — expect ≥1.5× increase in LGG group.<br><br>
+        (2) Body weight trajectory throughout the 4-week intervention — confirm no significant difference between groups (p>0.05) to rule out confounding effects on permeability.<br><br>
+        (3) IHC staining of tight junction proteins in jejunum cross-sections — qualitative confirmation of WB findings.
+      </div>
+    </div>
+    <div class="confidence-block">
+      <div class="conf-header">
+        <div class="conf-title">⚡ Confidence score</div>
+        <div class="conf-score">0.79</div>
+      </div>
+      <div class="conf-bar-track">
+        <div class="conf-bar-fill"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-weight:400">LabMind flags sections where literature support is thinner or assumptions are aggressive. Verify these before ordering materials.</div>
+      <div class="flags-list">
+        <div class="flag-item">⚠ The 30% reduction threshold is ambitious. Existing studies report 18–25% reductions with LGG at similar dosing. Consider pre-registering a tiered endpoint (≥20% as secondary success criterion).</div>
+        <div class="flag-item">⚠ n=20 per group provides 85% power, but literature variance for FITC-Dextran in C57BL/6 mice ranges widely (SD 15–35%). Confirm with a statistician before finalising sample size.</div>
+        <div class="flag-item">⚠ FITC-Dextran 4kDa is standard but some protocols use 40kDa for colon-specific permeability. Confirm your target intestinal segment before ordering (scientist correction applied for SDS-PAGE gel % — verified ✓).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK SECTION -->
+  <div class="feedback-section" id="feedback-section">
+    <div class="feedback-title">🔄 Scientist Review <span style="font-size:13px;font-weight:400;color:var(--muted)">— Close the learning loop</span></div>
+    <div class="feedback-sub">Rate each section. Flag corrections. The next similar experiment plan will automatically incorporate your expertise.</div>
+
+    <div class="feedback-steps">
+      <div class="fb-step">
+        <div class="fb-step-name">Step 1 — Animal Housing & Acclimatisation</div>
+        <div class="fb-rating">
+          <button class="fb-btn" onclick="rateStep(this,'up')">👍</button>
+          <button class="fb-btn" onclick="rateStep(this,'down')">👎</button>
+        </div>
+      </div>
+      <div class="fb-step" style="flex-direction:column;align-items:flex-start">
+        <div style="display:flex;width:100%;align-items:center;gap:12px">
+          <div class="fb-step-name">Step 5 — Western Blot SDS-PAGE</div>
+          <div class="fb-rating">
+            <button class="fb-btn selected-down" onclick="rateStep(this,'up')">👍</button>
+            <button class="fb-btn" onclick="rateStep(this,'down')">👎</button>
+          </div>
+        </div>
+        <div class="fb-correct-input show">
+          <input type="text" value="Use 10% SDS-PAGE not 12% for claudin-1 (~23kDa) resolution" placeholder="Your correction…" />
+          <button class="fb-save-btn" onclick="saveCorrection(this)">Save ✓</button>
+        </div>
+      </div>
+      <div class="fb-step">
+        <div class="fb-step-name">Step 3 — FITC-Dextran Assay</div>
+        <div class="fb-rating">
+          <button class="fb-btn selected-up" onclick="rateStep(this,'up')">👍</button>
+          <button class="fb-btn" onclick="rateStep(this,'down')">👎</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback-submit">
+      <div class="feedback-note">✦ Your corrections are stored and applied as few-shot examples in future similar plans</div>
+      <button class="btn-primary" onclick="submitFeedback()">Submit feedback →</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 4: NEW QUERY (after feedback)
+═══════════════════════════════════════ -->
+<div class="screen" id="screen-newquery">
+  <div class="new-query-screen">
+    <div class="learned-banner">
+      <div class="learned-title">✅ Feedback saved & applied</div>
+      <div class="learned-text">1 scientist correction captured: "10% SDS-PAGE for claudin-1 resolution." The next plan for a similar tight junction experiment will automatically apply this. LabMind gets smarter with every review.</div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:28px;letter-spacing:0.08em">TRY A SECOND QUERY — WATCH IT APPLY THE CORRECTION</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="example-chip" onclick="fillExample(1); goBack();" style="text-align:left">
+        <div class="example-tag">🩸 Diagnostics · different domain</div>
+        <div class="example-title">Paper-based CRP biosensor</div>
+        <div class="example-desc">Watch LabMind handle a completely different scientific domain with equal depth</div>
+      </div>
+      <div class="example-chip" onclick="fillExample(3); goBack();" style="text-align:left">
+        <div class="example-tag">🌍 Climate · completely different</div>
+        <div class="example-title">CO₂ fixation via Sporomusa ovata</div>
+        <div class="example-desc">Any science, any domain — same operational quality</div>
+      </div>
+    </div>
+    <div style="margin-top:24px">
+      <button class="btn-ghost" onclick="goBack()" style="width:100%;justify-content:center">← Back to input</button>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Correction saved — will apply to future plans</div>
+
+<script>
+const examples = [
+  "Supplementing C57BL/6 mice with Lactobacillus rhamnosus GG for 4 weeks will reduce intestinal permeability by at least 30% compared to controls, measured by FITC-dextran assay, due to upregulation of tight junction proteins claudin-1 and occludin.",
+  "A paper-based electrochemical biosensor functionalized with anti-CRP antibodies will detect C-reactive protein in whole blood at concentrations below 0.5 mg/L within 10 minutes, matching laboratory ELISA sensitivity without requiring sample preprocessing.",
+  "Replacing sucrose with trehalose as a cryoprotectant in the freezing medium will increase post-thaw viability of HeLa cells by at least 15 percentage points compared to the standard DMSO protocol, due to trehalose's superior membrane stabilization at low temperatures.",
+  "Introducing Sporomusa ovata into a bioelectrochemical system at a cathode potential of −400mV vs SHE will fix CO₂ into acetate at a rate of at least 150 mmol/L/day, outperforming current biocatalytic carbon capture benchmarks by at least 20%."
+];
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function fillExample(i) {
+  document.getElementById('hypothesis-input').value = examples[i];
+}
+
+let timerInterval, timerStart, loadingTimeout;
+
+function startLoading() {
+  const q = document.getElementById('hypothesis-input').value.trim();
+  if (!q) {
+    document.getElementById('hypothesis-input').style.borderColor = 'var(--accent2)';
+    setTimeout(() => document.getElementById('hypothesis-input').style.borderColor = '', 1500);
+    return;
+  }
+
+  document.getElementById('loading-question-text').textContent = '"' + q.slice(0, 180) + (q.length > 180 ? '…' : '') + '"';
+  document.getElementById('results-question-text').textContent = q.slice(0, 200) + (q.length > 200 ? '…' : '');
+  showScreen('screen-loading');
+
+  // Reset stages
+  [1,2,3,4].forEach(i => {
+    const s = document.getElementById('stage-' + i);
+    s.classList.remove('active','done');
+    document.getElementById('stage-' + i + '-status').innerHTML = '○';
+  });
+
+  // Timer
+  timerStart = Date.now();
+  const timerEl = document.getElementById('loading-timer');
+  timerInterval = setInterval(() => {
+    timerEl.textContent = ((Date.now() - timerStart) / 1000).toFixed(1) + 's';
+  }, 100);
+
+  // Stage animation
+  activateStage(1, 800, () => {
+    activateStage(2, 1400, () => {
+      activateStage(3, 2000, () => {
+        activateStage(4, 1200, () => {
+          clearInterval(timerInterval);
+          const elapsed = ((Date.now() - timerStart) / 1000).toFixed(1);
+          document.getElementById('gen-time-display').textContent = elapsed + 's';
+          setTimeout(() => showScreen('screen-results'), 300);
+        });
+      });
+    });
+  });
+}
+
+function activateStage(num, duration, cb) {
+  const s = document.getElementById('stage-' + num);
+  const status = document.getElementById('stage-' + num + '-status');
+  s.classList.add('active');
+  status.innerHTML = '<div class="spinner"></div>';
+  setTimeout(() => {
+    s.classList.remove('active');
+    s.classList.add('done');
+    status.innerHTML = '✓';
+    if (cb) setTimeout(cb, 200);
+  }, duration);
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function toggleStep(el) {
+  el.classList.toggle('open');
+}
+
+function rateStep(btn, type) {
+  const row = btn.closest('.fb-step');
+  const allBtns = row.querySelectorAll('.fb-btn');
+  allBtns.forEach(b => { b.classList.remove('selected-up','selected-down'); });
+
+  if (type === 'up') btn.classList.add('selected-up');
+  else btn.classList.add('selected-down');
+
+  let correctInput = row.querySelector('.fb-correct-input');
+  if (!correctInput) {
+    correctInput = document.createElement('div');
+    correctInput.className = 'fb-correct-input';
+    correctInput.innerHTML = '<input type="text" placeholder="Describe the correction…" /><button class="fb-save-btn" onclick="saveCorrection(this)">Save ✓</button>';
+    row.appendChild(correctInput);
+  }
+
+  if (type === 'down') correctInput.classList.add('show');
+  else correctInput.classList.remove('show');
+}
+
+function saveCorrection(btn) {
+  const input = btn.previousElementSibling;
+  if (!input.value.trim()) return;
+  btn.textContent = '✓ Saved';
+  btn.style.background = 'var(--blue)';
+  input.disabled = true;
+  showToast('✅ Correction saved — will apply to future plans');
+}
+
+function submitFeedback() {
+  showToast('🧠 Feedback applied — next similar plan will reflect your corrections');
+  setTimeout(() => showScreen('screen-newquery'), 800);
+}
+
+function goBack() {
+  showScreen('screen-input');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Open first step by default on load
+window.addEventListener('DOMContentLoaded', () => {
+  const firstStep = document.querySelector('.proto-step');
+  if (firstStep) firstStep.classList.add('open');
+});
+</script>
+</body>
+</html>
