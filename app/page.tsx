@@ -1,7 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
-import { LiteratureCard } from "@/app/components/literature-card";
 import { ProgressPipeline, type PipelineState } from "@/app/components/progress-pipeline";
 import { ScientistReviewForm } from "@/app/components/scientist-review-form";
 import { GUT_HEALTH_HYPOTHESIS } from "@/lib/demo-data";
@@ -23,9 +23,9 @@ const sampleHypotheses = [
       "Replacing sucrose with trehalose as a cryoprotectant in the freezing medium will increase post-thaw viability of HeLa cells by at least 15 percentage points compared to the standard DMSO protocol, due to trehalose’s superior membrane stabilization at low temperatures."
   },
   {
-    label: "Climate",
+    label: "Metabolism",
     value:
-      "Introducing Sporomusa ovata into a bioelectrochemical system at a cathode potential of −400mV vs SHE will fix CO₂ into acetate at a rate of at least 150 mmol/L/day, outperforming current biocatalytic carbon capture benchmarks by at least 20%."
+      "Administering metformin to diet-induced obese C57BL/6 mice for 8 weeks will reduce fasting blood glucose by at least 20% compared with vehicle controls by improving hepatic insulin sensitivity."
   }
 ];
 
@@ -38,16 +38,7 @@ const pipelineConfig = [
   { key: "estimates", label: "Estimating materials, budget, and timeline" }
 ] as const;
 
-const tabs = [
-  "Protocol",
-  "Materials",
-  "Budget",
-  "Timeline",
-  "Validation",
-  "Risks",
-  "Alternative Approach",
-  "Scientist Review"
-] as const;
+const tabs = ["Protocol", "Materials", "Budget", "Timeline", "Validation", "Risks"] as const;
 
 type TabName = (typeof tabs)[number];
 
@@ -60,7 +51,7 @@ type ReviewState = {
 };
 
 export default function HomePage() {
-  const [hypothesis, setHypothesis] = useState(GUT_HEALTH_HYPOTHESIS);
+  const [hypothesis, setHypothesis] = useState("");
   const [progress, setProgress] = useState<Record<string, PipelineState>>(
     Object.fromEntries(pipelineConfig.map((item) => [item.key, "idle"]))
   );
@@ -82,6 +73,10 @@ export default function HomePage() {
     corrected_text: "",
     user_note: ""
   });
+
+  const isAnalyzing = busy && progress.validating === "loading";
+  const isGeneratingPlan = busy && (progress.protocol === "loading" || progress.estimates === "loading");
+  const totalDone = pipelineConfig.filter((item) => progress[item.key] === "done").length;
 
   async function postJson<T>(url: string, payload: unknown): Promise<T> {
     const response = await fetch(url, {
@@ -127,7 +122,7 @@ export default function HomePage() {
       updateStep("validating", "done");
 
       if (!qualityResult.is_testable) {
-        setError("The current input is not yet a strong testable hypothesis. Refine it using the suggestions below.");
+        setError("This hypothesis still needs a sharper intervention, endpoint, threshold, or model.");
         setBusy(false);
         return;
       }
@@ -182,6 +177,7 @@ export default function HomePage() {
       });
       setPlan(planResult);
       setPlanId(globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`);
+      setActiveTab("Protocol");
       updateStep("protocol", "done");
       updateStep("estimates", "done");
 
@@ -232,7 +228,7 @@ export default function HomePage() {
       ];
 
       setFeedback(nextFeedback);
-      setBanner("Expert correction saved. Future similar plans will use this.");
+      setBanner("Correction saved to expert memory.");
       setReview({
         rating: "needs_correction",
         section: review.section,
@@ -249,405 +245,528 @@ export default function HomePage() {
   }
 
   function preloadCorrection(section: string, originalText: string) {
-    setActiveTab("Scientist Review");
     setReview((current) => ({
       ...current,
       section,
       original_text: originalText
     }));
-    document.getElementById("scientist-review")?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-7xl px-6 py-8 sm:px-8 lg:px-10">
-      <section className="overflow-hidden rounded-[36px] border border-white/10 bg-panel/85 p-8 shadow-glow">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+    <main className="mx-auto min-h-screen max-w-[1600px] px-4 py-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden rounded-[36px] border border-stone-200 bg-[linear-gradient(135deg,#fff8eb_0%,#ffffff_45%,#edf7ff_100%)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div className="absolute -left-16 top-10 h-40 w-40 rounded-full bg-orange-200/40 blur-3xl" />
+        <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-sky-200/40 blur-3xl" />
+        <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex rounded-full border border-sky-300/20 bg-sky-300/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-sky-100">
+            <div className="inline-flex rounded-full border border-sky-200 bg-white/80 px-4 py-2 text-xs uppercase tracking-[0.3em] text-sky-700">
               Fulcrum Science Challenge
             </div>
-            <h1 className="mt-5 text-5xl font-semibold tracking-tight text-white sm:text-6xl">LabMind</h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-              From scientific hypothesis to runnable experiment plan.
-            </p>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-400">
-              Validates testability, scans Semantic Scholar, classifies novelty, injects scientist feedback, and produces an operationally realistic protocol package in under a minute.
-            </p>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-stone-900 sm:text-5xl">LabMind</h1>
+            <p className="mt-3 max-w-2xl text-lg text-stone-700">A horizontal experiment workspace: validate, scan literature, score novelty, and generate a runnable plan.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Badge>Live APIs</Badge>
+              <Badge>Visible loaders</Badge>
+              <Badge>Compact cards</Badge>
+              <Badge>Feedback memory</Badge>
+            </div>
           </div>
 
-          <div className="grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
-            <MetricCard label="Manual scoping" value="3 to 5 days" accent="text-amber-200" />
-            <MetricCard label="LabMind" value="Under 1 minute" accent="text-emerald-200" />
-            <MetricCard label="Pipeline" value="6 visible stages" accent="text-sky-200" />
-            <MetricCard label="Feedback loop" value="Supabase memory" accent="text-white" />
+          <div className="grid gap-3 sm:grid-cols-4">
+            <MetricCard label="Stages" value="6" accent="text-sky-800" tone="sky" />
+            <MetricCard label="Completed" value={`${totalDone}/6`} accent="text-emerald-800" tone="emerald" />
+            <MetricCard label="Papers" value={String(papers.length)} accent="text-amber-800" tone="amber" />
+            <MetricCard label="Plan" value={plan ? "Ready" : busy ? "Running" : "Idle"} accent="text-stone-900" tone="stone" />
           </div>
         </div>
       </section>
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[32px] border border-line bg-panel/90 p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-[0.28em] text-slate-400">Input</div>
-              <h2 className="mt-2 text-2xl font-semibold text-white">Enter a scientific hypothesis</h2>
+      <section className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)_320px]">
+        <aside className="xl:sticky xl:top-6 xl:self-start">
+          <div className="rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff,#faf7f2)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.28em] text-stone-400">Input rail</div>
+                <h2 className="mt-2 text-2xl font-semibold text-stone-900">Hypothesis</h2>
+              </div>
+              <StatusDot busy={busy} />
             </div>
-            <button
-              type="button"
-              onClick={handleAnalyze}
-              disabled={busy || !hypothesis.trim()}
-              className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Generate Experiment Plan
-            </button>
-          </div>
 
-          <textarea
-            value={hypothesis}
-            onChange={(event) => setHypothesis(event.target.value)}
-            className="min-h-52 w-full rounded-[28px] border border-white/10 bg-slate-950/60 px-5 py-4 text-base leading-7 text-white outline-none placeholder:text-slate-500"
-            placeholder="Describe the intervention, measurable outcome, threshold, model system, and expected mechanism."
-          />
-
-          <div className="mt-4 flex flex-wrap gap-3">
-            {sampleHypotheses.map((sample) => (
-              <button
-                key={sample.label}
-                type="button"
-                onClick={() => setHypothesis(sample.value)}
-                className="rounded-full border border-white/10 bg-slate-950/50 px-4 py-2 text-sm text-slate-300 transition hover:border-sky-300/30 hover:text-white"
-              >
-                {sample.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[32px] border border-line bg-panel/90 p-6">
-          <div className="text-xs uppercase tracking-[0.28em] text-slate-400">Demo Flow</div>
-          <ol className="mt-4 grid gap-3 text-sm leading-6 text-slate-300">
-            <li>1. Click the Gut Health sample hypothesis.</li>
-            <li>2. Generate to validate the hypothesis and show literature QC.</li>
-            <li>3. Generate the runnable plan with protocol, materials, budget, and timeline.</li>
-            <li>4. Save a correction about 4 kDa FITC-dextran.</li>
-            <li>5. Re-run a similar gut permeability query to show expert feedback injection.</li>
-          </ol>
-          <div className="mt-6 rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-sm leading-6 text-emerald-100">
-            LabMind compresses experiment scoping from days to minutes, and every expert correction improves the next plan.
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-8">
-        <ProgressPipeline
-          steps={pipelineConfig.map((item) => ({
-            ...item,
-            state: progress[item.key]
-          }))}
-        />
-      </section>
-
-      {error ? (
-        <section className="mt-8 rounded-[28px] border border-rose-300/20 bg-rose-300/10 p-5 text-sm text-rose-100">
-          {error}
-        </section>
-      ) : null}
-
-      {banner ? (
-        <section className="mt-8 rounded-[28px] border border-emerald-300/20 bg-emerald-300/10 p-5 text-sm text-emerald-100">
-          {banner}
-        </section>
-      ) : null}
-
-      {quality ? (
-        <section className="mt-8 rounded-[32px] border border-line bg-panel/90 p-6">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <div className="text-xs uppercase tracking-[0.28em] text-slate-400">Hypothesis Quality Check</div>
-              <h2 className="mt-2 text-2xl font-semibold text-white">
-                {quality.is_testable ? "Testable and planning-ready" : "Needs refinement before planning"}
-              </h2>
-            </div>
-            <div className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200">
-              Quality score {quality.quality_score}/100
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <InfoCard label="Intervention" value={quality.intervention || "Missing"} />
-            <InfoCard label="Measurable outcome" value={quality.measurable_outcome || "Missing"} />
-            <InfoCard label="Success threshold" value={quality.success_threshold || "Missing"} />
-            <InfoCard label="Model system" value={quality.model_system || "Missing"} />
-            <InfoCard label="Mechanistic rationale" value={quality.mechanistic_rationale || "Missing"} />
-            <InfoCard
-              label="Suggestions"
-              value={quality.clarifying_suggestions.length > 0 ? quality.clarifying_suggestions.join(" ") : "No changes suggested."}
+            <textarea
+              value={hypothesis}
+              onChange={(event) => setHypothesis(event.target.value)}
+              className="mt-4 min-h-64 w-full rounded-[28px] border border-stone-200 bg-stone-50 px-4 py-4 text-sm leading-7 text-stone-900 outline-none"
+              placeholder="Describe intervention, outcome, threshold, model, and mechanism."
             />
-          </div>
-        </section>
-      ) : null}
 
-      {literature ? (
-        <section className="mt-8">
-          <LiteratureCard literature={literature} onGeneratePlan={handleGeneratePlan} disabled={busy} />
-        </section>
-      ) : null}
-
-      {plan ? (
-        <section className="mt-8 rounded-[36px] border border-white/10 bg-panel/90 p-6 shadow-glow">
-          <div className="flex flex-col gap-6 border-b border-white/10 pb-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="text-xs uppercase tracking-[0.28em] text-slate-400">Experiment Plan</div>
-              <h2 className="mt-2 text-3xl font-semibold text-white">{plan.experiment_title}</h2>
-              <p className="mt-3 text-base leading-7 text-slate-300">{plan.experiment_summary}</p>
-              <p className="mt-4 text-sm leading-6 text-slate-400">{plan.novelty_positioning}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {sampleHypotheses.map((sample) => (
+                <button
+                  key={sample.label}
+                  type="button"
+                  onClick={() => setHypothesis(sample.value)}
+                  className="rounded-full border border-stone-200 bg-white px-3 py-2 text-xs uppercase tracking-[0.18em] text-stone-700 transition hover:border-sky-300 hover:text-sky-900"
+                >
+                  {sample.label}
+                </button>
+              ))}
             </div>
 
-            <div className="grid min-w-[280px] gap-3 sm:grid-cols-2">
-              <MetricCard label="Budget total" value={`$${plan.budget.total_estimated_cost_usd.toLocaleString()}`} accent="text-emerald-200" />
-              <MetricCard label="Timeline total" value={plan.timeline.total_duration} accent="text-sky-200" />
-              <MetricCard label="Confidence score" value={`${Math.round(plan.confidence_score * 100)}%`} accent="text-white" />
-              <MetricCard label="Novelty signal" value={literature?.novelty_signal.replaceAll("_", " ") ?? "n/a"} accent="text-amber-200" />
+            <div className="mt-5 grid gap-3">
+              <button
+                type="button"
+                onClick={handleAnalyze}
+                disabled={busy || !hypothesis.trim()}
+                className="rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isAnalyzing ? "Analyzing..." : "Run analysis"}
+              </button>
+              <button
+                type="button"
+                onClick={handleGeneratePlan}
+                disabled={busy || !quality || !literature}
+                className="rounded-full border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isGeneratingPlan ? "Generating plan..." : "Generate plan"}
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+              <RailHint title="Fast path" text="Run analysis first, then generate the plan once novelty is ready." />
+              <RailHint title="Feedback loop" text="Save one correction on the right. Similar plans should reuse it later." />
             </div>
           </div>
+        </aside>
 
-          {feedback.length > 0 ? (
-            <div className="mt-6 rounded-[28px] border border-emerald-300/20 bg-emerald-300/10 p-5">
-              <div className="text-xs uppercase tracking-[0.24em] text-emerald-100">Applied expert memory</div>
-              <div className="mt-2 grid gap-3">
-                {feedback.slice(0, 3).map((item, index) => (
-                  <div key={`${item.section}-${index}`} className="rounded-2xl border border-white/10 bg-slate-950/30 p-3 text-sm text-emerald-50">
-                    <span className="font-semibold uppercase tracking-[0.2em]">{item.section}</span>: {item.corrected_text}
-                  </div>
-                ))}
+        <section className="min-w-0 space-y-6">
+          <div className="rounded-[32px] border border-stone-200 bg-white/90 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.28em] text-stone-400">Pipeline</div>
+                <h2 className="mt-2 text-2xl font-semibold text-stone-900">Live workflow</h2>
+              </div>
+              <div className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-xs uppercase tracking-[0.2em] text-stone-600">
+                {busy ? "Running" : "Ready"}
               </div>
             </div>
+            <ProgressPipeline
+              steps={pipelineConfig.map((item) => ({
+                ...item,
+                state: progress[item.key]
+              }))}
+            />
+          </div>
+
+          {error ? (
+            <div className="rounded-[28px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>
           ) : null}
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`rounded-full px-4 py-2 text-sm transition ${
-                  activeTab === tab
-                    ? "bg-white text-slate-950"
-                    : "border border-white/10 bg-slate-950/40 text-slate-300 hover:text-white"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          {banner ? (
+            <div className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{banner}</div>
+          ) : null}
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <InfoCard
-              label="Hypothesis quality summary"
-              value={[
-                `Intervention: ${plan.hypothesis_quality.intervention}`,
-                `Outcome: ${plan.hypothesis_quality.measurable_outcome}`,
-                `Threshold: ${plan.hypothesis_quality.success_threshold}`,
-                `Model: ${plan.hypothesis_quality.model_system}`
-              ].join(" ")}
-            />
-            <InfoCard
-              label="Study design"
-              value={[
-                `Groups: ${plan.study_design.groups.join(" | ")}`,
-                `Sample size: ${plan.study_design.sample_size_recommendation}`,
-                `Randomization: ${plan.study_design.randomization}`,
-                `Blinding: ${plan.study_design.blinding}`
-              ].join(" ")}
-            />
-          </div>
+          {busy ? <LoadingBoard stage={isGeneratingPlan ? "Building experiment plan" : "Running analysis"} /> : null}
 
-          <div className="mt-6">
-            {activeTab === "Protocol" ? (
-              <div className="grid gap-4">
-                {plan.protocol_steps.map((step) => (
-                  <div key={step.step_number} className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Step {step.step_number}</div>
-                        <h3 className="mt-2 text-xl font-semibold text-white">{step.title}</h3>
-                      </div>
-                      <div className="rounded-full border border-white/10 px-3 py-2 text-sm text-slate-300">{step.duration}</div>
+          {(quality || literature || plan) ? (
+            <div className="grid gap-6 2xl:grid-cols-[minmax(0,0.92fr)_minmax(320px,0.56fr)]">
+              <div className="space-y-6">
+                {quality ? (
+                  <div className="rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff,#fbf8f2)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+                    <SectionHeader eyebrow="Validation" title={quality.is_testable ? "Planning-ready hypothesis" : "Needs refinement"} />
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <CompactStat label="Quality" value={`${quality.quality_score}/100`} />
+                      <CompactStat label="Intervention" value={quality.intervention || "Missing"} />
+                      <CompactStat label="Outcome" value={quality.measurable_outcome || "Missing"} />
+                      <CompactStat label="Model" value={quality.model_system || "Missing"} />
                     </div>
-                    <p className="mt-4 text-sm leading-7 text-slate-300">{step.description}</p>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      <InfoCard label="Critical notes" value={step.critical_notes} />
-                      <InfoCard label="Success check" value={step.success_check} />
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {quality.clarifying_suggestions.slice(0, 4).map((suggestion) => (
+                        <MiniChip key={suggestion} text={suggestion} />
+                      ))}
                     </div>
-                    {step.feedback_applied && step.feedback_note ? (
-                      <div className="mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-3 text-sm text-emerald-100">
-                        {step.feedback_note}
-                      </div>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => preloadCorrection("protocol", `${step.title}: ${step.description}`)}
-                      className="mt-4 rounded-full border border-white/10 px-4 py-2 text-sm text-white transition hover:border-sky-300/30 hover:text-sky-200"
-                    >
-                      Suggest correction
-                    </button>
                   </div>
-                ))}
-              </div>
-            ) : null}
+                ) : null}
 
-            {activeTab === "Materials" ? (
-              <div className="grid gap-4">
-                <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-left text-sm">
-                      <thead className="text-slate-400">
-                        <tr>
-                          <th className="pb-3 pr-4">Name</th>
-                          <th className="pb-3 pr-4">Supplier</th>
-                          <th className="pb-3 pr-4">Catalog number</th>
-                          <th className="pb-3 pr-4">Quantity</th>
-                          <th className="pb-3 pr-4">Estimated cost</th>
-                          <th className="pb-3 pr-4">Purpose</th>
-                          <th className="pb-3">Verification</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {plan.materials.map((material) => (
-                          <tr key={`${material.name}-${material.catalog_number}`} className="border-t border-white/10">
-                            <td className="py-3 pr-4 text-white">{material.name}</td>
-                            <td className="py-3 pr-4 text-slate-300">{material.supplier}</td>
-                            <td className="py-3 pr-4 text-slate-300">{material.catalog_number}</td>
-                            <td className="py-3 pr-4 text-slate-300">{material.quantity}</td>
-                            <td className="py-3 pr-4 text-slate-300">${material.estimated_cost_usd}</td>
-                            <td className="py-3 pr-4 text-slate-300">{material.purpose}</td>
-                            <td className="py-3 text-slate-300">{material.verification_status}</td>
-                          </tr>
+                {literature ? (
+                  <div className="rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff,#fbf8f2)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+                    <SectionHeader eyebrow="Literature" title="Novelty snapshot" />
+                    <div className="mt-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+                      <div className="rounded-[26px] border border-stone-200 bg-white p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-stone-700">
+                            {literature.novelty_signal.replaceAll("_", " ")}
+                          </span>
+                          <span className="text-sm font-medium text-stone-600">{Math.round(literature.confidence * 100)}%</span>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-stone-800">{literature.one_sentence_summary}</p>
+                        <p className="mt-2 text-sm text-stone-500">{literature.recommendation_for_experiment_planning}</p>
+                      </div>
+                      <div className="rounded-[26px] border border-stone-200 bg-white p-4">
+                        <div className="text-xs uppercase tracking-[0.2em] text-stone-400">Top references</div>
+                        <div className="mt-3 grid gap-2">
+                          {papers.length > 0 ? (
+                            papers.slice(0, 3).map((paper) => (
+                              <div key={paper.title} className="rounded-2xl border border-stone-200 bg-stone-50 p-3">
+                                <div className="text-sm font-semibold text-stone-900">{paper.title}</div>
+                                <div className="mt-1 text-xs text-stone-500">
+                                  {[paper.venue, paper.year].filter(Boolean).join(" • ") || "Retrieved result"}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <EmptyStrip label="No papers returned for this exact query." />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {plan ? (
+                  <div className="rounded-[34px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff,#fbf8f2)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+                    <SectionHeader eyebrow="Plan" title={plan.experiment_title} />
+                    <div className="mt-4 grid gap-3 md:grid-cols-4">
+                      <CompactStat label="Budget" value={`$${plan.budget.total_estimated_cost_usd.toLocaleString()}`} />
+                      <CompactStat label="Timeline" value={plan.timeline.total_duration} />
+                      <CompactStat label="Confidence" value={`${Math.round(plan.confidence_score * 100)}%`} />
+                      <CompactStat label="Feedback hits" value={String(feedback.length)} />
+                    </div>
+
+                    <div className="mt-5 overflow-x-auto pb-1">
+                      <div className="flex min-w-max gap-2">
+                        {tabs.map((tab) => (
+                          <button
+                            key={tab}
+                            type="button"
+                            onClick={() => setActiveTab(tab)}
+                            className={`rounded-full px-4 py-2 text-sm transition ${
+                              activeTab === tab
+                                ? "bg-stone-900 text-white"
+                                : "border border-stone-200 bg-white text-stone-700 hover:border-sky-300 hover:text-stone-900"
+                            }`}
+                          >
+                            {tab}
+                          </button>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="mt-4 text-sm text-slate-400">Catalog numbers should be verified before ordering.</p>
-                </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                  <div className="mb-4 text-xs uppercase tracking-[0.24em] text-slate-500">Equipment</div>
-                  <div className="grid gap-3">
-                    {plan.equipment.map((item) => (
-                      <div key={item.name} className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
-                        <div className="text-base font-medium text-white">{item.name}</div>
-                        <div className="mt-2 text-sm text-slate-300">{item.specification}</div>
-                        <div className="mt-1 text-sm text-slate-500">{item.purpose}</div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {activeTab === "Budget" ? (
-              <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
-                <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                  <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Total estimated cost</div>
-                  <div className="mt-3 text-4xl font-semibold text-white">${plan.budget.total_estimated_cost_usd.toLocaleString()}</div>
-                </div>
-                <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                  <div className="grid gap-4">
-                    {plan.budget.breakdown.map((item) => (
-                      <div key={item.category}>
-                        <div className="mb-2 flex items-center justify-between text-sm text-slate-300">
-                          <span>{item.category}</span>
-                          <span>${item.estimated_cost_usd}</span>
-                        </div>
-                        <div className="h-3 rounded-full bg-slate-900">
-                          <div
-                            className="h-3 rounded-full bg-gradient-to-r from-sky-400 to-emerald-300"
-                            style={{
-                              width: `${(item.estimated_cost_usd / plan.budget.total_estimated_cost_usd) * 100}%`
-                            }}
-                          />
-                        </div>
-                        <p className="mt-1 text-sm text-slate-500">{item.notes}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {activeTab === "Timeline" ? (
-              <div className="grid gap-4">
-                <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                  <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Total duration</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">{plan.timeline.total_duration}</div>
-                </div>
-                {plan.timeline.phases.map((phase) => (
-                  <div key={phase.phase} className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h3 className="text-lg font-semibold text-white">{phase.phase}</h3>
-                      <div className="rounded-full border border-white/10 px-3 py-2 text-sm text-slate-300">{phase.duration}</div>
                     </div>
-                    <div className="mt-3 text-sm text-slate-400">Dependencies: {phase.dependencies.join(", ")}</div>
+
+                    <div className="mt-5">
+                      {activeTab === "Protocol" ? (
+                        <div className="overflow-x-auto pb-2">
+                          <div className="flex min-w-max gap-4">
+                            {plan.protocol_steps.map((step) => (
+                              <div key={step.step_number} className="w-[300px] rounded-[28px] border border-stone-200 bg-white p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-stone-700">
+                                    Step {step.step_number}
+                                  </span>
+                                  <span className="text-xs text-stone-500">{step.duration}</span>
+                                </div>
+                                <h3 className="mt-3 text-lg font-semibold text-stone-900">{step.title}</h3>
+                                <p className="mt-2 text-sm leading-6 text-stone-700">{step.description}</p>
+                                <div className="mt-4 space-y-2 text-sm text-stone-500">
+                                  <div><strong className="text-stone-700">Notes:</strong> {step.critical_notes}</div>
+                                  <div><strong className="text-stone-700">Check:</strong> {step.success_check}</div>
+                                </div>
+                                {step.feedback_applied && step.feedback_note ? (
+                                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                                    {step.feedback_note}
+                                  </div>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  onClick={() => preloadCorrection("protocol", `${step.title}: ${step.description}`)}
+                                  className="mt-4 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-800 transition hover:border-sky-300 hover:text-sky-800"
+                                >
+                                  Suggest correction
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {activeTab === "Materials" ? (
+                        <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+                          <div className="rounded-[28px] border border-stone-200 bg-white p-4">
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full text-left text-sm">
+                                <thead className="text-stone-500">
+                                  <tr>
+                                    <th className="pb-3 pr-4">Item</th>
+                                    <th className="pb-3 pr-4">Supplier</th>
+                                    <th className="pb-3 pr-4">Qty</th>
+                                    <th className="pb-3 pr-4">Cost</th>
+                                    <th className="pb-3">Verification</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {plan.materials.map((material) => (
+                                    <tr key={`${material.name}-${material.catalog_number}`} className="border-t border-stone-200 align-top">
+                                      <td className="py-3 pr-4 text-stone-900">
+                                        <div className="font-medium">{material.name}</div>
+                                        <div className="mt-1 text-xs text-stone-500">{material.catalog_number}</div>
+                                      </td>
+                                      <td className="py-3 pr-4 text-stone-700">{material.supplier}</td>
+                                      <td className="py-3 pr-4 text-stone-700">{material.quantity}</td>
+                                      <td className="py-3 pr-4 text-stone-700">${material.estimated_cost_usd}</td>
+                                      <td className="py-3 text-stone-700">{material.verification_status}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          <div className="rounded-[28px] border border-stone-200 bg-white p-4">
+                            <div className="text-xs uppercase tracking-[0.2em] text-stone-400">Equipment</div>
+                            <div className="mt-3 grid gap-3">
+                              {plan.equipment.map((item) => (
+                                <div key={item.name} className="rounded-2xl border border-stone-200 bg-stone-50 p-3">
+                                  <div className="text-sm font-semibold text-stone-900">{item.name}</div>
+                                  <div className="mt-1 text-sm text-stone-600">{item.specification}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {activeTab === "Budget" ? (
+                        <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+                          <div className="rounded-[28px] border border-stone-200 bg-white p-5">
+                            <div className="text-xs uppercase tracking-[0.2em] text-stone-400">Total</div>
+                            <div className="mt-3 text-4xl font-semibold text-stone-900">${plan.budget.total_estimated_cost_usd.toLocaleString()}</div>
+                          </div>
+                          <div className="rounded-[28px] border border-stone-200 bg-white p-5">
+                            <div className="grid gap-4">
+                              {plan.budget.breakdown.map((item) => (
+                                <div key={item.category}>
+                                  <div className="mb-2 flex items-center justify-between text-sm text-stone-700">
+                                    <span>{item.category}</span>
+                                    <span>${item.estimated_cost_usd}</span>
+                                  </div>
+                                  <div className="h-2.5 rounded-full bg-stone-200">
+                                    <div
+                                      className="h-2.5 rounded-full bg-gradient-to-r from-sky-400 to-emerald-300"
+                                      style={{
+                                        width: `${Math.max(6, (item.estimated_cost_usd / Math.max(plan.budget.total_estimated_cost_usd, 1)) * 100)}%`
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {activeTab === "Timeline" ? (
+                        <div className="overflow-x-auto pb-2">
+                          <div className="flex min-w-max gap-4">
+                            {plan.timeline.phases.map((phase) => (
+                              <div key={phase.phase} className="w-[260px] rounded-[28px] border border-stone-200 bg-white p-4">
+                                <div className="text-xs uppercase tracking-[0.2em] text-stone-400">{phase.duration}</div>
+                                <div className="mt-2 text-lg font-semibold text-stone-900">{phase.phase}</div>
+                                <div className="mt-3 text-sm text-stone-500">
+                                  {phase.dependencies.length > 0 ? `Depends on ${phase.dependencies.join(", ")}` : "No blocking dependency"}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {activeTab === "Validation" ? (
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <InfoCard label="Primary endpoint" value={plan.validation_plan.primary_endpoint} />
+                          <InfoCard label="Success criteria" value={plan.validation_plan.success_criteria} />
+                          <InfoCard label="Secondary endpoints" value={plan.validation_plan.secondary_endpoints.join(" | ")} />
+                          <InfoCard label="Controls" value={`Neg: ${plan.controls.negative_control} | Pos: ${plan.controls.positive_control} | Vehicle: ${plan.controls.vehicle_control}`} />
+                        </div>
+                      ) : null}
+
+                      {activeTab === "Risks" ? (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                          <InfoCard label="Risks" value={plan.risks_and_limitations.join(" | ")} />
+                          <InfoCard label="Alternative" value={plan.alternative_approach} />
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
-                ))}
+                ) : null}
               </div>
-            ) : null}
 
-            {activeTab === "Validation" ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <InfoCard label="Primary endpoint" value={plan.validation_plan.primary_endpoint} />
-                <InfoCard label="Secondary endpoints" value={plan.validation_plan.secondary_endpoints.join(" | ")} />
-                <InfoCard label="Success criteria" value={plan.validation_plan.success_criteria} />
-                <InfoCard label="Failure criteria" value={plan.validation_plan.failure_criteria} />
-                <InfoCard label="Quality standards" value={plan.validation_plan.quality_standards.join(" | ")} />
-                <InfoCard
-                  label="Controls"
-                  value={[
-                    `Negative: ${plan.controls.negative_control}`,
-                    `Positive: ${plan.controls.positive_control}`,
-                    `Vehicle: ${plan.controls.vehicle_control}`
-                  ].join(" ")}
-                />
-              </div>
-            ) : null}
+              <div className="space-y-6">
+                <div className="rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,#fffefb,#f6fbff)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+                  <SectionHeader eyebrow="Status rail" title="At-a-glance" />
+                  <div className="mt-4 grid gap-3">
+                    <StatusRow label="Hypothesis" value={hypothesis.trim() ? "Loaded" : "Empty"} />
+                    <StatusRow label="Validation" value={quality ? "Done" : isAnalyzing ? "Running" : "Waiting"} />
+                    <StatusRow label="Novelty" value={literature ? "Done" : busy ? "Running" : "Waiting"} />
+                    <StatusRow label="Plan" value={plan ? "Ready" : isGeneratingPlan ? "Running" : "Waiting"} />
+                  </div>
+                </div>
 
-            {activeTab === "Risks" ? (
-              <div className="grid gap-4 lg:grid-cols-2">
-                <InfoCard label="Risks and limitations" value={plan.risks_and_limitations.join(" ")} />
-                <InfoCard label="Low-confidence flags" value={plan.low_confidence_flags.join(" ")} />
-              </div>
-            ) : null}
+                <div className="rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff,#faf7f2)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+                  <SectionHeader eyebrow="Expert memory" title="Feedback hits" />
+                  <div className="mt-4 grid gap-3">
+                    {feedback.length > 0 ? (
+                      feedback.slice(0, 4).map((item, index) => (
+                        <div key={`${item.section}-${index}`} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                          <div className="text-[11px] uppercase tracking-[0.2em] text-emerald-700">{item.section}</div>
+                          <div className="mt-1">{item.corrected_text}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <EmptyStrip label="No prior corrections matched this experiment type yet." />
+                    )}
+                  </div>
+                </div>
 
-            {activeTab === "Alternative Approach" ? (
-              <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5 text-sm leading-7 text-slate-300">
-                {plan.alternative_approach}
+                <div id="scientist-review" className="rounded-[32px] border border-stone-200 bg-white/95 p-2 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+                  <ScientistReviewForm value={review} onChange={setReview} onSubmit={handleSaveFeedback} saving={savingFeedback} />
+                </div>
               </div>
-            ) : null}
-
-            {activeTab === "Scientist Review" ? (
-              <div id="scientist-review">
-                <ScientistReviewForm value={review} onChange={setReview} onSubmit={handleSaveFeedback} saving={savingFeedback} />
-              </div>
-            ) : null}
-          </div>
+            </div>
+          ) : (
+            <EmptyCanvas />
+          )}
         </section>
-      ) : null}
+
+        <aside className="hidden xl:block" />
+      </section>
     </main>
   );
 }
 
-function MetricCard({ label, value, accent }: { label: string; value: string; accent: string }) {
+function StatusDot({ busy }: { busy: boolean }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-950/45 px-4 py-4">
-      <div className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</div>
+    <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-2 text-xs uppercase tracking-[0.2em] text-stone-600">
+      <span className={`h-2.5 w-2.5 rounded-full ${busy ? "animate-pulse bg-emerald-500" : "bg-stone-300"}`} />
+      {busy ? "Live" : "Idle"}
+    </div>
+  );
+}
+
+function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-[0.28em] text-stone-400">{eyebrow}</div>
+      <h2 className="mt-2 text-2xl font-semibold text-stone-900">{title}</h2>
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  accent,
+  tone = "stone"
+}: {
+  label: string;
+  value: string;
+  accent: string;
+  tone?: "amber" | "emerald" | "sky" | "stone";
+}) {
+  const toneStyles: Record<string, string> = {
+    amber: "bg-[linear-gradient(135deg,#fff7e6,#ffffff)] border-amber-200",
+    emerald: "bg-[linear-gradient(135deg,#eefcf4,#ffffff)] border-emerald-200",
+    sky: "bg-[linear-gradient(135deg,#eef8ff,#ffffff)] border-sky-200",
+    stone: "bg-[linear-gradient(135deg,#ffffff,#faf7f2)] border-stone-200"
+  };
+
+  return (
+    <div className={`rounded-3xl border px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] ${toneStyles[tone] ?? toneStyles.stone}`}>
+      <div className="text-xs uppercase tracking-[0.24em] text-stone-500">{label}</div>
       <div className={`mt-2 text-lg font-semibold ${accent}`}>{value}</div>
+    </div>
+  );
+}
+
+function CompactStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-stone-200 bg-white p-4">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-stone-400">{label}</div>
+      <div className="mt-2 text-sm font-semibold text-stone-900">{value}</div>
     </div>
   );
 }
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-slate-950/40 p-5">
-      <div className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</div>
-      <div className="mt-3 text-sm leading-7 text-slate-300">{value}</div>
+    <div className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+      <div className="text-xs uppercase tracking-[0.24em] text-stone-500">{label}</div>
+      <div className="mt-3 text-sm leading-6 text-stone-700">{value}</div>
+    </div>
+  );
+}
+
+function Badge({ children }: { children: ReactNode }) {
+  return <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1.5 text-sm text-stone-700">{children}</span>;
+}
+
+function MiniChip({ text }: { text: string }) {
+  return <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-700">{text}</span>;
+}
+
+function RailHint({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[24px] border border-stone-200 bg-white p-4">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-stone-400">{title}</div>
+      <div className="mt-2 text-sm leading-6 text-stone-700">{text}</div>
+    </div>
+  );
+}
+
+function StatusRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm">
+      <span className="text-stone-500">{label}</span>
+      <span className="font-semibold text-stone-900">{value}</span>
+    </div>
+  );
+}
+
+function EmptyStrip({ label }: { label: string }) {
+  return <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-500">{label}</div>;
+}
+
+function EmptyCanvas() {
+  return (
+    <div className="rounded-[34px] border border-dashed border-stone-300 bg-white/70 p-8 text-center shadow-[0_14px_36px_rgba(15,23,42,0.04)]">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-stone-100 text-xl">→</div>
+      <h2 className="mt-4 text-2xl font-semibold text-stone-900">Run the pipeline</h2>
+      <p className="mt-2 text-sm text-stone-600">The center workspace fills horizontally as each stage completes, instead of stacking long vertical sections.</p>
+    </div>
+  );
+}
+
+function LoadingBoard({ stage }: { stage: string }) {
+  return (
+    <div className="rounded-[34px] border border-sky-200 bg-[linear-gradient(180deg,#f8fcff,#ffffff)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-xs uppercase tracking-[0.28em] text-sky-500">Running</div>
+          <h2 className="mt-2 text-2xl font-semibold text-stone-900">{stage}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 animate-pulse rounded-full bg-sky-400" />
+          <span className="h-3 w-3 animate-pulse rounded-full bg-sky-300 [animation-delay:150ms]" />
+          <span className="h-3 w-3 animate-pulse rounded-full bg-sky-200 [animation-delay:300ms]" />
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map((item) => (
+          <div key={item} className="rounded-[26px] border border-sky-100 bg-white p-4">
+            <div className="h-3 w-20 animate-pulse rounded-full bg-stone-200" />
+            <div className="mt-4 h-6 w-4/5 animate-pulse rounded-full bg-stone-200" />
+            <div className="mt-3 h-4 w-full animate-pulse rounded-full bg-stone-100" />
+            <div className="mt-2 h-4 w-2/3 animate-pulse rounded-full bg-stone-100" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -658,6 +777,7 @@ function inferDomain(hypothesis: string) {
   if (value.includes("hela") || value.includes("cell")) return "cell_biology";
   if (value.includes("co2") || value.includes("cathode")) return "climate";
   if (value.includes("biosensor") || value.includes("blood")) return "diagnostics";
+  if (value.includes("glucose") || value.includes("insulin") || value.includes("metformin")) return "metabolism";
   return "general_science";
 }
 
@@ -667,5 +787,6 @@ function inferType(hypothesis: string) {
   if (value.includes("cryoprotectant")) return "cell_viability_assay";
   if (value.includes("biosensor")) return "biosensor_benchmark";
   if (value.includes("bioelectrochemical")) return "bioelectrochemical_carbon_capture";
+  if (value.includes("metformin") || value.includes("glucose")) return "murine_drug_study";
   return "exploratory_experiment";
 }

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const supabase = getSupabaseAdmin();
 
   if (!supabase) {
-    return NextResponse.json({ success: true, mocked: true });
+    return NextResponse.json({ error: "Supabase admin client is not configured." }, { status: 503 });
   }
 
   const { error } = await supabase.from("scientist_feedback").insert(body);

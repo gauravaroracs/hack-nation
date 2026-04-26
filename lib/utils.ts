@@ -33,18 +33,16 @@ export function safeJsonParse<T>(value: string): T {
 
 export async function callOpenAiJson<T>({
   systemPrompt,
-  userPrompt,
-  fallback
+  userPrompt
 }: {
   systemPrompt: string;
   userPrompt: string;
-  fallback: T;
 }): Promise<T> {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL ?? "gpt-4.1-mini";
 
   if (!apiKey) {
-    return fallback;
+    throw new Error("OPENAI_API_KEY is not configured.");
   }
 
   try {
@@ -72,7 +70,8 @@ export async function callOpenAiJson<T>({
     });
 
     if (!response.ok) {
-      return fallback;
+      const body = await response.text();
+      throw new Error(`OpenAI request failed: ${response.status} ${body || response.statusText}`);
     }
 
     const json = (await response.json()) as {
@@ -81,11 +80,15 @@ export async function callOpenAiJson<T>({
     const content = json.choices?.[0]?.message?.content;
 
     if (!content) {
-      return fallback;
+      throw new Error("OpenAI response did not include JSON content.");
     }
 
     return safeJsonParse<T>(content);
-  } catch {
-    return fallback;
+  } catch (error) {
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
+
+    throw new Error("OpenAI request failed.");
   }
 }

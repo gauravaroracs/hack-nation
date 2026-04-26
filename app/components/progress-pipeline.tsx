@@ -1,10 +1,10 @@
 const stepDescriptions: Record<string, string> = {
-  validating: "Checks whether the input is a testable scientific hypothesis.",
-  literature: "Queries Semantic Scholar for adjacent evidence and references.",
-  novelty: "Labels novelty as exact match, similar work, or not found.",
-  feedback: "Injects relevant prior scientist corrections before planning.",
-  protocol: "Builds a runnable protocol with controls and validation.",
-  estimates: "Calculates materials, suppliers, timeline, and budget."
+  validating: "Testability",
+  literature: "Paper search",
+  novelty: "Novelty label",
+  feedback: "Expert memory",
+  protocol: "Protocol draft",
+  estimates: "Budget and timing"
 };
 
 export type PipelineState = "idle" | "loading" | "done" | "error";
@@ -15,30 +15,51 @@ export function ProgressPipeline({
   steps: Array<{ key: string; label: string; state: PipelineState }>;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-3">
+    <div className="overflow-x-auto pb-2">
+      <div className="flex min-w-max gap-3">
       {steps.map((step, index) => {
         const stateStyles =
           step.state === "done"
-            ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-100"
+            ? "border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,white)] text-emerald-900"
             : step.state === "loading"
-              ? "border-sky-400/40 bg-sky-400/10 text-sky-50"
+              ? "border-sky-200 bg-[linear-gradient(135deg,#eff6ff,white)] text-sky-900"
               : step.state === "error"
-                ? "border-rose-400/40 bg-rose-400/10 text-rose-100"
-                : "border-line bg-panel/80 text-slate-300";
+                ? "border-rose-200 bg-[linear-gradient(135deg,#fff1f2,white)] text-rose-900"
+                : "border-stone-200 bg-[linear-gradient(135deg,#ffffff,#faf7f2)] text-stone-700";
 
         return (
-          <div key={step.key} className={`rounded-3xl border p-4 shadow-glow ${stateStyles}`}>
+          <div
+            key={step.key}
+            className={`w-[220px] rounded-3xl border p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)] ${stateStyles}`}
+          >
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Stage {index + 1}</span>
-              <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em]">
+              <span className="text-xs uppercase tracking-[0.24em] text-stone-400">Stage {index + 1}</span>
+              <span className="rounded-full border border-current/10 px-2 py-1 text-[10px] uppercase tracking-[0.2em]">
                 {step.state}
               </span>
             </div>
-            <div className="text-sm font-semibold">{step.label}</div>
-            <p className="mt-2 text-sm text-slate-400">{stepDescriptions[step.key]}</p>
+            <div className="flex items-center gap-3">
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-full border border-current/10 bg-white/70 text-sm ${
+                  step.state === "loading" ? "animate-pulse" : ""
+                }`}
+              >
+                {step.state === "done" ? "✓" : step.state === "error" ? "!" : index + 1}
+              </span>
+              <div>
+                <div className="text-sm font-semibold">{step.label}</div>
+                <p className="mt-1 text-xs opacity-70">{stepDescriptions[step.key]}</p>
+              </div>
+            </div>
+            {step.state === "loading" ? (
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/80">
+                <div className="h-full w-1/2 animate-pulse rounded-full bg-sky-400" />
+              </div>
+            ) : null}
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

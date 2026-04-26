@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { demoPapers } from "@/lib/demo-data";
+import { normalizePapers } from "@/lib/normalizers";
 import type { Paper } from "@/lib/types";
-import { isGutHealthDemo, parseJsonBody } from "@/lib/utils";
+import { parseJsonBody } from "@/lib/utils";
 
 type SemanticScholarResponse = {
   data?: Array<{
@@ -25,12 +25,8 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.SEMANTIC_SCHOLAR_API_KEY;
 
-  if (!apiKey && isGutHealthDemo(hypothesis)) {
-    return NextResponse.json({ papers: demoPapers });
-  }
-
   if (!apiKey) {
-    return NextResponse.json({ papers: [] });
+    return NextResponse.json({ error: "SEMANTIC_SCHOLAR_API_KEY is not configured." }, { status: 503 });
   }
 
   try {
@@ -50,7 +46,11 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ papers: isGutHealthDemo(hypothesis) ? demoPapers : [] });
+      const body = await response.text();
+      return NextResponse.json(
+        { error: `Semantic Scholar request failed: ${response.status} ${body || response.statusText}` },
+        { status: 502 }
+      );
     }
 
     const json = (await response.json()) as SemanticScholarResponse;
@@ -65,8 +65,9 @@ export async function POST(request: Request) {
       authors: (paper.authors ?? []).map((author) => author.name ?? "Unknown author")
     }));
 
-    return NextResponse.json({ papers: papers.length > 0 ? papers : isGutHealthDemo(hypothesis) ? demoPapers : [] });
-  } catch {
-    return NextResponse.json({ papers: isGutHealthDemo(hypothesis) ? demoPapers : [] });
+    return NextResponse.json({ papers: normalizePapers(papers) });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Literature search failed.";
+    return NextResponse.json({ error: message }, { status: 502 });
   }
 }

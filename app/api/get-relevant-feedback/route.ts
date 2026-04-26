@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { demoFeedback } from "@/lib/demo-data";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { ScientistFeedback } from "@/lib/types";
-import { isGutHealthDemo, normalizeText, parseJsonBody } from "@/lib/utils";
+import { normalizeText, parseJsonBody } from "@/lib/utils";
 
 export async function POST(request: Request) {
   const { hypothesis, experiment_domain, experiment_type } = await parseJsonBody<{
@@ -12,10 +11,9 @@ export async function POST(request: Request) {
   }>(request);
 
   const supabase = getSupabaseAdmin();
-  const fallback = isGutHealthDemo(hypothesis) ? demoFeedback : [];
 
   if (!supabase) {
-    return NextResponse.json({ feedback: fallback });
+    return NextResponse.json({ error: "Supabase admin client is not configured." }, { status: 503 });
   }
 
   try {
@@ -28,7 +26,7 @@ export async function POST(request: Request) {
       .limit(50);
 
     if (error || !data) {
-      return NextResponse.json({ feedback: fallback });
+      return NextResponse.json({ error: error?.message ?? "Failed to fetch scientist feedback." }, { status: 502 });
     }
 
     const input = normalizeText(hypothesis);
@@ -60,8 +58,9 @@ export async function POST(request: Request) {
           }) satisfies ScientistFeedback
       );
 
-    return NextResponse.json({ feedback: ranked.length > 0 ? ranked : fallback });
-  } catch {
-    return NextResponse.json({ feedback: fallback });
+    return NextResponse.json({ feedback: ranked });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to fetch scientist feedback.";
+    return NextResponse.json({ error: message }, { status: 502 });
   }
 }
